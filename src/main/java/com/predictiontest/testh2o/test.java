@@ -14,6 +14,9 @@ import hex.genmodel.algos.word2vec.Word2VecMojoModel;
 
 import hex.genmodel.easy.exception.PredictException;
 import java.util.Arrays;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -28,26 +31,17 @@ public class test {
          Word2VecMojoModel s= (Word2VecMojoModel)MojoModel.load("C:\\Users\\l440\\Documents\\NetBeansProjects\\testh2o\\w2v.zip");
          //string query
          String test="celebrate their birthdays";
-         String res[]= test.split(" ");
-         System.out.println("size"+res.length);
-         // create the matrix for each one of the transformations usin w2v   model     
-         float [][]sx= new float[res.length][100];
-         for (int c=0;c<res.length;c++) {
-          s.transform0(res[c], sx[c]);         
-        }
-         //print each word output vector
-         for (float[] fs : sx) {
-             System.out.println(Arrays.toString(fs));
-        }
-         System.out.println("aggregate");
-         //apply aggregate Average
-         RowData query= toRow(aggregateAV(sx));
-         //predict
-         MultinomialModelPrediction pred=model.predictMultinomial(query);
-         //get probabilities
-         System.out.println(Arrays.toString(pred.classProbabilities));
-         //what kind of mail is it 
-         System.out.println(pred.label);
+         predict(test,model,s);
+         
+         
+         Scanner input= new Scanner(System.in);
+         String testQuery="";
+         do{
+             testQuery= input.nextLine();
+             predict(testQuery, model, s);
+             
+         }while(!testQuery.equals("exit"));
+         
     }
     //calculate aggregate avergage not available in Java for transform
     public static float[] aggregateAV(float[][] inp){
@@ -64,6 +58,32 @@ public class test {
     query.put("C"+(c+1), inp[c]+"");
     }
     return query;
+    }
+    public static void predict(String test, EasyPredictModelWrapper model,Word2VecMojoModel s){
+        try {
+            //split data
+            String res[]= test.split(" ");
+            // create the matrix for each one of the transformations usin w2v   model
+            float [][]sx= new float[res.length][100];
+            for (int c=0;c<res.length;c++) {         
+                s.transform0(res[c], sx[c]);
+            }
+            //print each word output vector
+            for (float[] fs : sx) {
+                System.out.println(Arrays.toString(fs));
+            }
+            System.out.println("aggregate");
+            //apply aggregate Average
+            RowData query= toRow(aggregateAV(sx));
+            //predict
+            MultinomialModelPrediction pred=model.predictMultinomial(query);
+            //get probabilities
+            System.out.println(Arrays.toString(pred.classProbabilities));
+            //what kind of mail is it
+            System.out.println(pred.label);
+        } catch (PredictException ex) {
+            Logger.getLogger(test.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }
